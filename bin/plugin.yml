@@ -6,6 +6,6 @@ website: https://emilianomaccaferri.com
 main: com.emilianomaccaferri.backpacks.Backpacks
 
 commands:
-  test:
+  backpack:
     description: Do that
-    usage: /test
+    usage: /backpack
