@@ -1,12 +1,16 @@
 package com.emilianomaccaferri.backpacks;
 
-import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.UUID;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.json.simple.parser.ParseException;
 
 import com.emilianomaccaferri.backpacks.models.Backpack;
 
@@ -42,7 +46,41 @@ public class Commands implements CommandExecutor {
 					return true;
 				}
 				
+				String backpackName = args[1];
+				
 				switch(args[0]) {
+				
+				case "open":
+					
+					HashMap<UUID, ArrayList<Backpack>> table = Backpack.getAllBackpacks();
+					
+					if(table.get(player.getUniqueId()) == null)
+						sender.sendMessage("You have no backpacks");
+					else {
+						
+						for(int i = 0, len = table.get(player.getUniqueId()).size(); i < len; i++) {
+							
+							Backpack b = table.get(player.getUniqueId()).get(i);
+							if(b.getName().equalsIgnoreCase(backpackName)) {
+								
+								try {
+									b.load();
+									
+									return true;
+									
+								} catch (IOException | ParseException e) {
+									e.printStackTrace();
+									sender.sendMessage("Something went wrong...");
+								}
+							}
+							
+						}
+						
+						sender.sendMessage("No backpacks found with that name");
+												
+					}
+					
+					break;
 				
 				case "create":
 					
@@ -62,20 +100,16 @@ public class Commands implements CommandExecutor {
 						
 					}
 					
-					String backpackName = args[1];
+					// economy stuff here
 					
-					Backpack newBackpack = new Backpack(backpackName, size, player);
-					int created = Backpack.create(newBackpack, player);	
-					
+					int created = Backpack.create(backpackName, size, player);	
 					if(created == 0) 						
 						player.sendMessage("That backpack already exists!");
 					else if(created == -1)
 						player.sendMessage("Something went wrong while creating that backpack...");	
 					else
 						player.sendMessage("Backpack "+ backpackName +" has been created!");
-					
-					newBackpack.open();
-											
+									
 					break;
 				
 				}

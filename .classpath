@@ -3,6 +3,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="C:/Users/Macca/Desktop/mc-libs/spigot-1.13.2.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Macca/Desktop/mc-libs/java-json.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Macca/Desktop/mc-libs/json-simple-1.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
