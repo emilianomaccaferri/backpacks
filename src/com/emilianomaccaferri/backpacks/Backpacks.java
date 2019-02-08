@@ -8,10 +8,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import com.emilianomaccaferri.backpacks.models.Backpack;
@@ -23,7 +20,7 @@ public class Backpacks extends JavaPlugin {
 	
 	public void onEnable() {
 		
-		Bukkit.getLogger().info("§a[Backpacks] Plugin starting up...");
+		Bukkit.getLogger().info("ï¿½a[Backpacks] Plugin starting up...");
 		this.saveDefaultConfig();
 		DATA_FOLDER = this.getDataFolder().getAbsolutePath();
 		this.getCommand("backpack").setExecutor(new Commands(this));
@@ -31,14 +28,12 @@ public class Backpacks extends JavaPlugin {
 		//new Thread(() -> {
 		// not sure if I should use a thread here because of Bukkit
 			
-		Bukkit.getLogger().info("§a[Backpacks] Loading backpacks...");
+		Bukkit.getLogger().info("a[Backpacks] Loading backpacks...");
+		new File(DATA_FOLDER + "/inventories").mkdirs();
 		
-		JSONParser parser = new JSONParser();
 		File[] directories = new File(DATA_FOLDER + "/inventories").listFiles(File::isDirectory);
 
 		for(File directory: directories) {
-					
-			Player player = Bukkit.getPlayer(directory.getName());
 			
 			Backpack.friends.put(UUID.fromString(directory.getName()), new ArrayList<Backpack>());
 					
@@ -63,7 +58,7 @@ public class Backpacks extends JavaPlugin {
 			
 		// }); 
 			
-		// this.getServer().getPluginManager().registerEvents(arg0, this);
+		this.getServer().getPluginManager().registerEvents(new Events(), this);
 		
 	}
 	

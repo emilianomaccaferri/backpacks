@@ -8,11 +8,14 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -28,7 +31,7 @@ public class Backpack {
 	private Player holder;
 	private JSONParser parser = new JSONParser();
 	private JSONObject data;
-	private JSONObject items;
+	private JSONArray items;
 	
 	public Backpack(FileReader data) throws IOException, ParseException{
 			
@@ -36,16 +39,77 @@ public class Backpack {
 		this.name = (String) this.data.get("name");
 		this.size = Integer.parseInt((String) this.data.get("size"));
 		this.holder = Bukkit.getPlayer(UUID.fromString((String) this.data.get("holder")));
-		this.items = (JSONObject) this.parser.parse(this.data.get("items").toString());
+		this.items = (JSONArray) this.parser.parse(this.data.get("items").toString());
 		this.backpack = Bukkit.createInventory(this.holder, this.size, this.name);
+		
+		/*
+		 * 
+		 * items will be stored like this
+		 * 
+		 * */
 		
 		Bukkit.getLogger().info(this.backpack.getName());
 		
 	}
 	
-	public void update(int position, ItemStack item) {
+	public void update(ItemStack[] content) {
 		
+		/*
+		 *
+		 * updating storage of certain backpack
+		 * 
+		 * */
 		
+		JSONArray items = new JSONArray();
+		
+		for(int i = 0, len = content.length; i < len; i++) {
+			
+			ItemStack item = content[i];
+			if(item == null)
+				continue;
+			
+			JSONObject currentItem = new JSONObject();
+			currentItem.put("enchantments", new String());
+			
+			int length = item.getEnchantments().entrySet().size();
+			int last = 1;
+			
+			item.getEnchantments()
+			.entrySet()
+			.stream()
+			.forEach(it -> {
+				
+				
+				
+			});
+			
+			/*item
+			.serialize()
+			.entrySet()
+			.stream()
+			.forEach(is -> {
+				
+				if(is.getKey() == "meta") {
+					
+					item.getEnchantments()
+					.entrySet()
+					.stream()
+					.forEach(it -> {
+						
+						Bukkit.getLogger().info(it.getKey().getName());
+						
+					});
+					
+				}else
+				currentItem.put(is.getKey().toString(), is.getValue().toString());
+				
+			});*/
+			
+			items.add(currentItem);
+			
+		}
+		
+		Bukkit.getLogger().info(items.toString());
 		
 	}
 	
@@ -103,7 +167,7 @@ public class Backpack {
 			inventory.createNewFile();
 			PrintWriter out = new PrintWriter(inventory);
 			
-			out.println("{\"name\": \""+ name +"\", \"holder\": \"" + player.getUniqueId() + "\", \"size\": \"" + size + "\", \"items\": {} }");
+			out.println("{\"name\": \""+ name +"\", \"holder\": \"" + player.getUniqueId() + "\", \"size\": \"" + size + "\", \"items\": [] }");
 			out.close();
 			
 			Backpack backpack = new Backpack(new FileReader(Backpacks.DATA_FOLDER + "/inventories/" + player.getUniqueId() + "/" + name + ".json"));
