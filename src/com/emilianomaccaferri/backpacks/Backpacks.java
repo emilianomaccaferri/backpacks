@@ -21,16 +21,16 @@ public class Backpacks extends JavaPlugin {
 	
 	public void onEnable() {
 		
-		Bukkit.getLogger().info("§a[Backpacks] Plugin starting up...");
 		this.saveDefaultConfig();
 		DATA_FOLDER = this.getDataFolder().getAbsolutePath();
 		PLUGIN = this;
+		int backpacksCount = 0;
 		this.getCommand("backpack").setExecutor(new Commands(this));
 					
 		//new Thread(() -> {
 		// not sure if I should use a thread here because of Bukkit
 			
-		Bukkit.getLogger().info("§a[Backpacks] Loading backpacks...");
+		Bukkit.getLogger().info(Utils.colored("&eLoading backpacks"));
 		new File(DATA_FOLDER + "/inventories").mkdirs();
 		
 		File[] directories = new File(DATA_FOLDER + "/inventories").listFiles(File::isDirectory);
@@ -44,7 +44,7 @@ public class Backpacks extends JavaPlugin {
 			for(File backpack: backpacks) {
 				
 				try {
-					
+					backpacksCount++;
 					Backpack newBackpack = new Backpack(new FileReader(DATA_FOLDER + "/inventories/" + directory.getName() + "/" + backpack.getName()));
 					Backpack.friends.get(UUID.fromString(directory.getName())).add(newBackpack);
 					
@@ -55,7 +55,7 @@ public class Backpacks extends JavaPlugin {
 						
 			}
 			
-			Bukkit.getLogger().info("§e[Backpacks] Loaded " + String.valueOf(Backpack.getAllBackpacks().size()) + " backpack(s)");
+			Bukkit.getLogger().info(Utils.colored("&aLoaded " + String.valueOf(backpacksCount) + " backpack(s)"));
 					
 					
 		}

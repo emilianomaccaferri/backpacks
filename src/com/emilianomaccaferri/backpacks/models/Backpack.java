@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
@@ -19,6 +18,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -56,38 +56,65 @@ public class Backpack {
 				this.backpack.addItem(new ItemStack(Material.AIR));
 				continue;
 			}
-				ItemStack is = new ItemStack(Material.valueOf((String) itm.get("item")), Integer.parseInt((String)itm.get("amount")));
-				String[] enchants = ((String) itm.get("enchantments")).split(",");
-				ItemMeta itemMeta = is.getItemMeta();
+			ItemStack is = new ItemStack(Material.valueOf((String) itm.get("item")), Integer.parseInt((String)itm.get("amount")));
+			String[] enchants = ((String) itm.get("enchantments")).split(",");
+			String[] storedEnchants = ((String) itm.get("stored-enchantments")).split(",");
+			ItemMeta itemMeta = is.getItemMeta();
+			
+			if((String)itm.get("display-name") != null) 
+				itemMeta.setDisplayName((String)itm.get("display-name"));
 				
-				if((String)itm.get("display-name") != null) 
-					itemMeta.setDisplayName((String)itm.get("display-name"));
+			Bukkit.getLogger().info((String)itm.get("item") + " - " + String.valueOf(enchants[0].length()));
 				
-				Bukkit.getLogger().info(enchants[0]);
-				
-				if(enchants.length > 0) {
+			if(enchants[0].length() > 0) {
 					
-					for(int i = 0, len = enchants.length; i < len; i++) {
+				for(int i = 0, len = enchants.length; i < len; i++) {
 						
-						String enchName = enchants[i].split(":")[0];
-						int enchLvl = Integer.parseInt(enchants[i].split(":")[1]);
+					String enchName = enchants[i].split(":")[0];
+					int enchLvl = Integer.parseInt(enchants[i].split(":")[1]);
+					
+					Bukkit.getLogger().info(enchName + ":" + String.valueOf(enchLvl));
 						
-						Bukkit.getLogger().info(enchName + ":" + String.valueOf(enchLvl));
-						
-						itemMeta.addEnchant(
-								Enchantment.getByKey(
-									NamespacedKey.minecraft(enchName)
-								), enchLvl, true);
-						
-					}
+					itemMeta.addEnchant(
+							Enchantment.getByKey(
+								NamespacedKey.minecraft(enchName)
+							), enchLvl, true);
 					
 				}
 				
 				is.setItemMeta(itemMeta);
 				
-				this.backpack.addItem(is);
+			}
+			
+			if(storedEnchants[0].length() > 0) {
+				
+				EnchantmentStorageMeta esm = (EnchantmentStorageMeta)is.getItemMeta();
+				
+				for(int i = 0, len = storedEnchants.length; i < len; i++) {
+					
+					String enchName = storedEnchants[i].split(":")[0];
+					int enchLvl = Integer.parseInt(storedEnchants[i].split(":")[1]);
+					
+					esm.addEnchant(
+							Enchantment.getByKey(
+								NamespacedKey.minecraft(enchName)
+							), enchLvl, true);
+					
+				}
+				
+				is.setItemMeta(esm);
+				
+			}
+			
+			this.backpack.addItem(is);
 			
 		}
+		
+	}
+	
+	public void createGroup(Player holder) {
+		
+		
 		
 	}
 	
@@ -112,13 +139,24 @@ public class Backpack {
 				continue;
 			}
 				
-			String enchs = "";
-
-			for(Entry<Enchantment, Integer> entry: item.getEnchantments().entrySet()) {
+			String enchs = "", storedEnchants = "";
+			
+			if(item.getType() == Material.ENCHANTED_BOOK) {
 				
-				enchs += entry.getKey().getKey().toString().split(":")[1] + ":" + String.valueOf(entry.getValue()) + ",";
+				EnchantmentStorageMeta bookMeta =(EnchantmentStorageMeta) item.getItemMeta();
+				for(Entry<Enchantment, Integer> entry: bookMeta.getStoredEnchants().entrySet()) {
+					
+					storedEnchants += entry.getKey().getKey().toString().split(":")[1] + ":" + String.valueOf(entry.getValue()) + ",";
 				
+				}
 				
+			}else {
+				
+				for(Entry<Enchantment, Integer> entry: item.getEnchantments().entrySet()) {
+				
+					enchs += entry.getKey().getKey().toString().split(":")[1] + ":" + String.valueOf(entry.getValue()) + ",";
+				
+				}
 			}
 			
 			enchs = enchs.replaceAll(",$", ""); // replace the last comma with nothing
@@ -127,7 +165,8 @@ public class Backpack {
 			currentItem.put("display-name", item.getItemMeta().getDisplayName());
 			currentItem.put("amount", String.valueOf(item.getAmount()));
 			currentItem.put("lore", (item.getItemMeta().hasLore()) ? item.getItemMeta().getLore().toString() : "");
-			currentItem.put("enchantments", enchs);			
+			currentItem.put("enchantments", enchs);	
+			currentItem.put("stored-enchantments", storedEnchants);
 			items.add(currentItem);
 			
 		}

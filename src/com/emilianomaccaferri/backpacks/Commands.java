@@ -3,13 +3,14 @@ package com.emilianomaccaferri.backpacks;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.json.simple.parser.ParseException;
 
 import com.emilianomaccaferri.backpacks.models.Backpack;
@@ -38,17 +39,35 @@ public class Commands implements CommandExecutor {
 			}else {
 				
 				Player player = (Player) sender;
-								
-				String inventoryDir = this.PLUGIN_FOLDER + "/inventories/" + player.getUniqueId();
-				
+							
 				if(args.length <= 0) {
 					sender.sendMessage("/backpack create <backpack_name> [size (default: medium = 27)]");
 					return true;
 				}
 				
-				String backpackName = args[1];
+				String backpackName;
+				try {
+					backpackName = args[0];
+				}catch(Exception e) {
+					backpackName = "";
+				}
 				
 				switch(args[0]) {
+				
+				case "list":
+					
+					if(Backpack.getAllBackpacks().containsKey(player.getUniqueId())) {
+						
+						ListInventory listInventory = new ListInventory(player, "&c&lYour inventories", 54);
+						listInventory.open();
+						
+					}else {
+						
+						player.sendMessage(Utils.colored("&cYou have no backpacks"));
+						
+					}
+					
+					break;
 				
 				case "open":
 					
@@ -92,7 +111,7 @@ public class Commands implements CommandExecutor {
 						else if(args[2].equalsIgnoreCase("medium"))
 							size = 27;
 						else if(args[2].equalsIgnoreCase("big"))
-							size = 64;
+							size = 54;
 						else{
 							player.sendMessage("Invalid size, must be 'small', 'medium' or 'big'");
 							return true;
@@ -102,7 +121,7 @@ public class Commands implements CommandExecutor {
 					
 					// economy stuff here
 					
-					int created = Backpack.create(backpackName, size, player);	
+					int created = Backpack.create(Utils.coloredNoPrefix(backpackName), size, player);	
 					if(created == 0) 						
 						player.sendMessage("That backpack already exists!");
 					else if(created == -1)
@@ -110,6 +129,12 @@ public class Commands implements CommandExecutor {
 					else
 						player.sendMessage("Backpack "+ backpackName +" has been created!");
 									
+					break;
+					
+				default:
+					
+					sender.sendMessage("/backpack create <backpack_name> [size (default: medium = 27)]");
+					
 					break;
 				
 				}
