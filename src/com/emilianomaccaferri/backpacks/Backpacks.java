@@ -16,19 +16,21 @@ import com.emilianomaccaferri.backpacks.models.Backpack;
 public class Backpacks extends JavaPlugin {
 	
 	public static String DATA_FOLDER;
+	public static Backpacks PLUGIN;
 	public static HashMap<UUID, ArrayList<Backpack>> ALL = new HashMap<UUID, ArrayList<Backpack>>();
 	
 	public void onEnable() {
 		
-		Bukkit.getLogger().info("ï¿½a[Backpacks] Plugin starting up...");
+		Bukkit.getLogger().info("§a[Backpacks] Plugin starting up...");
 		this.saveDefaultConfig();
 		DATA_FOLDER = this.getDataFolder().getAbsolutePath();
+		PLUGIN = this;
 		this.getCommand("backpack").setExecutor(new Commands(this));
 					
 		//new Thread(() -> {
 		// not sure if I should use a thread here because of Bukkit
 			
-		Bukkit.getLogger().info("a[Backpacks] Loading backpacks...");
+		Bukkit.getLogger().info("§a[Backpacks] Loading backpacks...");
 		new File(DATA_FOLDER + "/inventories").mkdirs();
 		
 		File[] directories = new File(DATA_FOLDER + "/inventories").listFiles(File::isDirectory);
@@ -52,6 +54,8 @@ public class Backpacks extends JavaPlugin {
 				}
 						
 			}
+			
+			Bukkit.getLogger().info("§e[Backpacks] Loaded " + String.valueOf(Backpack.getAllBackpacks().size()) + " backpack(s)");
 					
 					
 		}

@@ -2,25 +2,31 @@ package com.emilianomaccaferri.backpacks.models;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import com.emilianomaccaferri.backpacks.Backpacks;
+
 
 public class Backpack {
 	
@@ -42,13 +48,46 @@ public class Backpack {
 		this.items = (JSONArray) this.parser.parse(this.data.get("items").toString());
 		this.backpack = Bukkit.createInventory(this.holder, this.size, this.name);
 		
-		/*
-		 * 
-		 * items will be stored like this
-		 * 
-		 * */
-		
-		Bukkit.getLogger().info(this.backpack.getName());
+		for(Object item: this.items) {
+			
+			JSONObject itm = (JSONObject) item;
+			
+			if(((String) itm.get("item")).equalsIgnoreCase("AIR")) {
+				this.backpack.addItem(new ItemStack(Material.AIR));
+				continue;
+			}
+				ItemStack is = new ItemStack(Material.valueOf((String) itm.get("item")), Integer.parseInt((String)itm.get("amount")));
+				String[] enchants = ((String) itm.get("enchantments")).split(",");
+				ItemMeta itemMeta = is.getItemMeta();
+				
+				if((String)itm.get("display-name") != null) 
+					itemMeta.setDisplayName((String)itm.get("display-name"));
+				
+				Bukkit.getLogger().info(enchants[0]);
+				
+				if(enchants.length > 0) {
+					
+					for(int i = 0, len = enchants.length; i < len; i++) {
+						
+						String enchName = enchants[i].split(":")[0];
+						int enchLvl = Integer.parseInt(enchants[i].split(":")[1]);
+						
+						Bukkit.getLogger().info(enchName + ":" + String.valueOf(enchLvl));
+						
+						itemMeta.addEnchant(
+								Enchantment.getByKey(
+									NamespacedKey.minecraft(enchName)
+								), enchLvl, true);
+						
+					}
+					
+				}
+				
+				is.setItemMeta(itemMeta);
+				
+				this.backpack.addItem(is);
+			
+		}
 		
 	}
 	
@@ -64,53 +103,48 @@ public class Backpack {
 		
 		for(int i = 0, len = content.length; i < len; i++) {
 			
-			ItemStack item = content[i];
-			if(item == null)
-				continue;
-			
 			JSONObject currentItem = new JSONObject();
-			currentItem.put("enchantments", new String());
 			
-			int length = item.getEnchantments().entrySet().size();
-			int last = 1;
+			ItemStack item = content[i];
+			if(item == null) {
+				currentItem.put("item", "AIR");
+				items.add(currentItem);
+				continue;
+			}
+				
+			String enchs = "";
+
+			for(Entry<Enchantment, Integer> entry: item.getEnchantments().entrySet()) {
+				
+				enchs += entry.getKey().getKey().toString().split(":")[1] + ":" + String.valueOf(entry.getValue()) + ",";
+				
+				
+			}
 			
-			item.getEnchantments()
-			.entrySet()
-			.stream()
-			.forEach(it -> {
-				
-				
-				
-			});
+			enchs = enchs.replaceAll(",$", ""); // replace the last comma with nothing
 			
-			/*item
-			.serialize()
-			.entrySet()
-			.stream()
-			.forEach(is -> {
-				
-				if(is.getKey() == "meta") {
-					
-					item.getEnchantments()
-					.entrySet()
-					.stream()
-					.forEach(it -> {
-						
-						Bukkit.getLogger().info(it.getKey().getName());
-						
-					});
-					
-				}else
-				currentItem.put(is.getKey().toString(), is.getValue().toString());
-				
-			});*/
-			
+			currentItem.put("item", item.getType().toString());
+			currentItem.put("display-name", item.getItemMeta().getDisplayName());
+			currentItem.put("amount", String.valueOf(item.getAmount()));
+			currentItem.put("lore", (item.getItemMeta().hasLore()) ? item.getItemMeta().getLore().toString() : "");
+			currentItem.put("enchantments", enchs);			
 			items.add(currentItem);
 			
 		}
 		
-		Bukkit.getLogger().info(items.toString());
+		// dump inventory to config
 		
+		Bukkit.getLogger().info(items.toString());
+		String newBackpack = "{\"name\": \"" + this.name + "\", \"holder\": \"" + this.holder.getUniqueId() + "\", \"size\": \"" + this.size + "\", \"items\": " + items.toString() + " }";
+		try {
+			PrintWriter out = new PrintWriter(new FileOutputStream(Backpacks.DATA_FOLDER + "/inventories/" + this.holder.getUniqueId() + "/" + this.name + ".json", false));
+			out.println(newBackpack);
+			out.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			this.holder.sendMessage("Error while updating inventory...");
+		}
 	}
 	
 	public Inventory getInventory() {
